@@ -1,0 +1,78 @@
+----item----
+version: 1
+id: {4A7C3509-409C-469E-96D9-05EA88A7C282}
+database: master
+path: /sitecore/system/Modules/PowerShell/Script Library/Westco/Pull Up Fields/Content Editor/Context Menu/Pull Up Fields
+parent: {430EF168-D213-4539-A603-95128C4C6F1A}
+name: Pull Up Fields
+master: {00000000-0000-0000-0000-000000000000}
+template: {AB154D3D-1126-4AB4-AC21-8B86E6BD70EA}
+templatekey: PowerShell Script Library
+created: 20180530T130834Z
+
+----field----
+field: {613D128B-7BF2-40F4-84CB-6717408F9806}
+name: ShowRule
+key: showrule
+content-length: 791
+
+<ruleset>
+  <rule uid="{E1681529-FFE7-4171-8306-2E18666D8971}">
+    <conditions>
+      <and uid="82592906077D40ABB22BD30E27803A60">
+        <condition id="{7D5DA661-BEF9-441C-B1F7-D80DE3E0972F}" uid="ACE813BAEDE74CE19B1E712358D064A3" itemid="{3C1715FE-6A13-4FCF-845F-DE308BA9741D}" />
+        <and uid="3DDA85CBA72646098F929E0479E2C955">
+          <condition id="{4F5389E9-79B7-4FE1-A43A-EEA4ECD19C94}" uid="B5A3D4F0931545C98AF20472C6174F31" operatorid="{A6AC5A6B-F409-48B0-ACE7-C3E8C5EC6406}" value="{1930BBEB-7805-471A-A3BE-4858AC7CF696}" />
+          <condition id="{7D5DA661-BEF9-441C-B1F7-D80DE3E0972F}" uid="EE4DAB65D77A4136A44CE79983FA1167" except="true" itemid="{4BF98EF5-1D09-4DD1-9AFE-795F9829FD44}" />
+        </and>
+      </and>
+    </conditions>
+  </rule>
+</ruleset>
+----field----
+field: {06D5295C-ED2F-4A54-9BF2-26228D113318}
+name: __Icon
+key: __icon
+content-length: 25
+
+Office/32x32/dumbbell.png
+----version----
+language: en
+version: 1
+revision: 8386fabf-ebcd-4348-b845-86a484940b23
+
+----field----
+field: {52807595-0F8F-4B20-8D2A-CB71D28C6103}
+name: __Owner
+key: __owner
+content-length: 14
+
+sitecore\admin
+----field----
+field: {25BED78C-4957-4165-998A-CA1B52F67497}
+name: __Created
+key: __created
+content-length: 16
+
+20180530T130835Z
+----field----
+field: {8CDC337E-A112-42FB-BBB4-4143751E123F}
+name: __Revision
+key: __revision
+content-length: 36
+
+8386fabf-ebcd-4348-b845-86a484940b23
+----field----
+field: {D9CF14B1-FA16-4BA6-9288-E8A174D4D522}
+name: __Updated
+key: __updated
+content-length: 16
+
+20180531T155049Z
+----field----
+field: {BADD9CF9-53E0-4D0C-BCC0-2D784C282F6A}
+name: __Updated by
+key: __updated by
+content-length: 14
+
+sitecore\admin

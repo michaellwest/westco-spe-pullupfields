@@ -1,0 +1,187 @@
+----item----
+version: 1
+id: {B485FCAE-314C-40E4-8854-B0A8FAB723E8}
+database: master
+path: /sitecore/system/Modules/PowerShell/Script Library/Westco/Pull Up Fields/Content Editor/Context Menu/Pull Up Fields/Into Base Template
+parent: {4A7C3509-409C-469E-96D9-05EA88A7C282}
+name: Into Base Template
+master: {00000000-0000-0000-0000-000000000000}
+template: {DD22F1B3-BD87-4DB2-9E7D-F7A496888D43}
+templatekey: PowerShell Script
+created: 20180530T130845Z
+
+----field----
+field: {F62C67B4-28B6-4A6F-91CB-DB78CF054F4E}
+name: EnableRule
+key: enablerule
+content-length: 280
+
+<ruleset>
+  <rule uid="{B74222D6-607D-4608-B5EC-7B3B459C6FA0}">
+    <conditions>
+      <condition id="{D0810F9D-734C-452D-BBB6-4730368D68F1}" uid="5EA49455829B4EF6ABCB2D6240E4AB3B" templateid="{AB86861A-6030-46C5-B394-E8F99E8B87DB}" />
+    </conditions>
+  </rule>
+</ruleset>
+----field----
+field: {B1A94FF0-6897-47C0-9C51-AA6ACB80B1F0}
+name: Script
+key: script
+content-length: 5241
+
+<#
+    .SYNOPSIS
+        Moves fields into a new or existing base template.
+        
+    .NOTES
+        Michael West
+        
+    .LINK
+        https://sitecorejunkie.com/2013/04/04/reuse-sitecore-data-template-fields-by-pulling-them-up-into-a-base-template/
+#>
+Close-Window
+$selectedItem = Get-Item -Path "."
+if($selectedItem.TemplateId -ne [Sitecore.TemplateIds]::Template) {
+    exit
+}
+
+$selectedFields = $null
+$templateName = $null
+$existingTemplate = $null
+
+$props = @{
+    ShowHints = $true
+    Title = "Pull Up Base Templates"
+    Description = "Pull up fields into a new or existing base template."
+    Icon = [regex]::Replace($PSScript.Appearance.Icon, "Office", "OfficeWhite", [System.Text.RegularExpressions.RegexOptions]::IgnoreCase)
+    Parameters = @(
+        @{ 
+            Name = "selectedFields"; Title="Select Fields"; 
+            Tooltip = "Select the fields to pull up into a base template.";
+            Source="DataSource=$($selectedItem.ItemPath)&DatabaseName=master&AllowMultipleSelection=true&IncludeTemplatesForSelection=Template field"; 
+            editor="treelist";
+            Validator = {
+                if(!$variable.Value) {
+                    $variable.Error = "Please select one or more fields to continue."
+                }
+            }
+        },
+        @{
+            Name = "templateName"; Title = "Enter the name of the new base template";
+            Tooltip = "Leaving this blank will assume you are selecting an existing base template."
+            Placeholder = "Template Name"
+        },
+        @{
+            Name = "existingTemplate"; Title = "Choose an existing base template or location";
+            Root="/sitecore/templates/";
+            editor = "item";
+            Validator = {
+                if($variable.Value.TemplateId -ne [Sitecore.TemplateIds]::TemplateFolder -and 
+                    $variable.Value.TemplateId -ne [Sitecore.TemplateIds]::Template) {
+                    $variable.Error = "Please select an existing template or location."
+                }
+            }
+        }
+    )
+    Validator = {
+        if([string]::IsNullOrEmpty($variables.templateName.Value) -and $variables.existingTemplate.Value.TemplateId -ne [Sitecore.TemplateIds]::Template) {
+            $variables.templateName.Error = "Please specify a template name."
+        } elseif(![string]::IsNullOrEmpty($variables.templateName.Value) -and $variables.existingTemplate.Value.TemplateId -ne [Sitecore.TemplateIds]::TemplateFolder) {
+            $variables.existingTemplate.Error = "Please specify a template folder."
+        }
+    }
+}
+
+$result = Read-Variable @props
+$selectedFieldNames = $selectedFields | ForEach-Object { $_.Name }
+$selectedTemplate = [Sitecore.Data.Items.TemplateItem]$selectedItem
+$sectionLookup = $selectedTemplate.Fields | Where-Object { $selectedFieldNames -contains $_.Name } | 
+    ForEach-Object { $lookup = @{} } { $lookup[$_.Section.InnerItem.ID] += @($_) } { $lookup }
+
+if($result -ne "ok") {
+    Exit
+}
+
+$templatePath = $existingTemplate.ItemPath
+
+if([string]::IsNullOrEmpty($templateName) -and $existingTemplate.TemplateId -eq [Sitecore.TemplateIds]::Template) {
+    $templateName = $existingTemplate.Name
+    $templatePath = $existingTemplate.Parent
+}
+
+if(![string]::IsNullOrEmpty($templateName)) {
+    $baseTemplate = $null
+    if(!(Test-Path -Path "$($templatePath.ProviderPath)\$($templateName)")) {
+        if($existingTemplate.TemplateId -eq [Sitecore.TemplateIds]::TemplateFolder) {
+            $baseTemplate = New-Item -Parent $templatePath -Name $templateName -ItemType "/sitecore/templates/System/Templates/Template"
+        } elseif ($existingTemplate.Parent.TemplateId -eq [Sitecore.TemplateIds]::Template) {
+            $baseTemplate = New-Item -Parent $templatePath.Parent -Name $templateName -ItemType "/sitecore/templates/System/Templates/Template"
+        }
+    } else {
+        $baseTemplate = Get-Item -Path "$($templatePath.ProviderPath)\$($templateName)"
+    }
+    
+    if($baseTemplate) {
+        Add-BaseTemplate -Item $selectedItem -TemplateItem $baseTemplate
+        $templateItem = [Sitecore.Data.Items.TemplateItem]$baseTemplate
+        $existingSectionLookup = $templateItem.GetSections() |
+            ForEach-Object { $lookup = @{} } { $lookup[$_.Name] = $_ } { $lookup }
+
+        foreach($sectionId in $sectionLookup.Keys) {
+            $section = $selectedTemplate.GetSection($sectionId)
+            $sectionFields = $sectionLookup[$sectionId]
+            $destinationSection = $existingSectionLookup[$section.Name]
+            if($destinationSection -eq $null) {
+                $destinationSection = [Sitecore.Data.Items.TemplateSectionItem]$section.InnerItem.CopyTo($baseTemplate, $section.Name, [Sitecore.Data.ID]::NewID, $false)
+                $existingSectionLookup[$section.Name] = $destinationSection
+            }
+            foreach($field in $sectionFields) {
+                $field.InnerItem.MoveTo($destinationSection.InnerItem)
+            }
+            
+            if($section.GetFields().Count -eq 0) {
+                $selectedTemplate.RemoveSection($sectionId)
+            }
+        }
+    }
+}
+----field----
+field: {06D5295C-ED2F-4A54-9BF2-26228D113318}
+name: __Icon
+key: __icon
+content-length: 32
+
+Office/32x32/elements_branch.png
+----version----
+language: en
+version: 1
+revision: d006a533-7791-4f71-91cd-fbecf6e3976b
+
+----field----
+field: {25BED78C-4957-4165-998A-CA1B52F67497}
+name: __Created
+key: __created
+content-length: 16
+
+20180530T130845Z
+----field----
+field: {8CDC337E-A112-42FB-BBB4-4143751E123F}
+name: __Revision
+key: __revision
+content-length: 36
+
+d006a533-7791-4f71-91cd-fbecf6e3976b
+----field----
+field: {D9CF14B1-FA16-4BA6-9288-E8A174D4D522}
+name: __Updated
+key: __updated
+content-length: 16
+
+20180531T162106Z
+----field----
+field: {BADD9CF9-53E0-4D0C-BCC0-2D784C282F6A}
+name: __Updated by
+key: __updated by
+content-length: 14
+
+sitecore\admin

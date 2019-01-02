@@ -27,7 +27,7 @@ content-length: 280
 field: {B1A94FF0-6897-47C0-9C51-AA6ACB80B1F0}
 name: Script
 key: script
-content-length: 5241
+content-length: 5232
 
 <#
     .SYNOPSIS
@@ -102,7 +102,7 @@ if($result -ne "ok") {
     Exit
 }
 
-$templatePath = $existingTemplate.ItemPath
+$templatePath = $existingTemplate
 
 if([string]::IsNullOrEmpty($templateName) -and $existingTemplate.TemplateId -eq [Sitecore.TemplateIds]::Template) {
     $templateName = $existingTemplate.Name
@@ -155,7 +155,7 @@ Office/32x32/elements_branch.png
 ----version----
 language: en
 version: 1
-revision: d006a533-7791-4f71-91cd-fbecf6e3976b
+revision: 6195d4d9-1aa9-4f76-9cda-6a49acfc36b5
 
 ----field----
 field: {25BED78C-4957-4165-998A-CA1B52F67497}
@@ -170,14 +170,14 @@ name: __Revision
 key: __revision
 content-length: 36
 
-d006a533-7791-4f71-91cd-fbecf6e3976b
+6195d4d9-1aa9-4f76-9cda-6a49acfc36b5
 ----field----
 field: {D9CF14B1-FA16-4BA6-9288-E8A174D4D522}
 name: __Updated
 key: __updated
 content-length: 16
 
-20180531T162106Z
+20190102T193717Z
 ----field----
 field: {BADD9CF9-53E0-4D0C-BCC0-2D784C282F6A}
 name: __Updated by
